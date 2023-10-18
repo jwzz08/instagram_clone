@@ -19,7 +19,7 @@ var theme = ThemeData(
     selectedItemColor: Colors.black
   ),
   textTheme: TextTheme(
-    bodyText2: TextStyle(color: Colors.red),
+    bodyText2: TextStyle(color: Colors.black),
     bodyText1: TextStyle(color: Colors.blue),
   )
 );
