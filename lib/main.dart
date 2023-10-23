@@ -24,10 +24,34 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   var tab = 0;
   var data = [];
+  var userImage; //사용자가 선택한 사진 저장
+  var userText; //사용자가 입력한 텍스트 저장
+
 
   addData(a) {
     setState(() {
       data.add(a);
+    });
+  }
+
+  setUserText(a){
+    setState(() {
+      userText = a;
+    });
+  }
+
+  addNewPost(){
+    var newPost = {
+      'id' : data.length,
+      'image' : userImage,
+      'likes' : 4,
+      'data' : 'Oct 23rd',
+      'content' : userText,
+      'liked' : 7,
+      'user' : 'Roy Yoo',
+    };
+    setState(() {
+      data.insert(0, newPost);
     });
   }
 
@@ -50,10 +74,19 @@ class _MyAppState extends State<MyApp> {
     return Scaffold(
         appBar: AppBar(
           title: Text("Instagram"),
-          actions: [IconButton(onPressed: () {
+          actions: [IconButton(
+              onPressed: () async {
+            var picker = ImagePicker();
+            var image = await picker.pickImage(source: ImageSource.gallery);    //video를 고르고 싶다면 .pickVideo()
+            if (image != null){
+              setState(() {
+                userImage = File(image.path);
+              });
+            }
+
             Navigator.push(context,             //새로운 페이지로 이동
             MaterialPageRoute(builder: (context){         //{ return ~ }을 =>로 바꿔서 쓰기 가능
-              return Upload(); })
+              return Upload( userImage: userImage, setUserText: setUserText, addNewPost: addNewPost ); })
             );
           }, icon: Icon(Icons.add_box_outlined))],
         ),
@@ -118,7 +151,9 @@ class _mkPageState extends State<mkPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.network(widget.data[index]['image']),
+                widget.data[index]['image'].runtimeType == String
+                    ? Image.network(widget.data[index]['image'])
+                    : Image.file(widget.data[index]['image']),
                 Text(widget.data[index]['id'].toString()),
                 Text('좋아요 ${widget.data[index]['likes']}'),
                 Text(widget.data[index]['content']),
@@ -133,25 +168,33 @@ class _mkPageState extends State<mkPage> {
 }
 
 class Upload extends StatelessWidget {
-  const Upload({Key? key}) : super(key: key);
+  const Upload({Key? key, this.userImage, this.setUserText, this.addNewPost }) : super(key: key);
+  final userImage;
+  final setUserText;
+  final addNewPost;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          IconButton(onPressed: (){
+            addNewPost();
+            Navigator.pop(context);
+          }, icon: Icon(Icons.send))
+        ],
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Image.file(userImage, height: 200),
           Text('이미지업로드화면'),
+         TextField(onChanged: (text) {
+           setUserText(text);
+         },),
           IconButton(onPressed: (){
             Navigator.pop(context);     //페이지 pop(닫기)
-          }, icon: Icon(Icons.close)),
-          IconButton(onPressed: (){
-            Navigator.push(context,             //새 페이지 열기
-                MaterialPageRoute(builder: (context){
-                  return Text('세번째페이지'); })
-            );
-          }, icon: Icon(Icons.add)),
+          }, icon: Icon(Icons.close),),
         ],
       )
     );
