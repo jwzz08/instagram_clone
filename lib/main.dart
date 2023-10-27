@@ -1,15 +1,22 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './style.dart' as style;
 import 'package:http/http.dart' as http; //서버
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-      MaterialApp(
-          theme: style.theme,
-          home: MyApp()
+      ChangeNotifierProvider(
+        create: (context) => Store1(),
+        child: MaterialApp(
+            theme: style.theme,
+            home: MyApp()
+        ),
       )
   );
 }
@@ -26,8 +33,23 @@ class _MyAppState extends State<MyApp> {
   var data = [];
   var userImage; //사용자가 선택한 사진 저장
   var userText; //사용자가 입력한 텍스트 저장
-
-
+  
+  saveData() async {
+    var storage = await SharedPreferences.getInstance();
+    
+    var map = {'age' : 20 }; 
+    storage.setString('map', jsonEncode(map));      //map자료형 json 형식으로 바꾸기
+    var result2 = storage.getString('map') ?? '없어요';
+    print(result2);
+    print(jsonDecode(result2)['age']);
+    
+    storage.setString('name', 'Roy');
+    storage.setInt('five', 5);
+    storage.remove('five');
+    var result = storage.get('name');        //정석은 getString()임; 자료형에 맞게 쓰기; storage에 있는 자료 꺼낼 때 사용
+    print(result);
+  }
+  
   addData(a) {
     setState(() {
       data.add(a);
@@ -66,6 +88,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    saveData();
     getData();
   }
 
@@ -73,7 +96,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("Instagram"),
+          title: Text("Instagram", style: TextStyle(color: Colors.black)),
           actions: [IconButton(
               onPressed: () async {
             var picker = ImagePicker();
@@ -154,6 +177,15 @@ class _mkPageState extends State<mkPage> {
                 widget.data[index]['image'].runtimeType == String
                     ? Image.network(widget.data[index]['image'])
                     : Image.file(widget.data[index]['image']),
+
+                GestureDetector(child: Text(widget.data[index]['user']),
+                onTap: (){
+                  Navigator.push(context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => Profile(),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+                    FadeTransition(opacity: animation, child: child,),));
+                },),
                 Text(widget.data[index]['id'].toString()),
                 Text('좋아요 ${widget.data[index]['likes']}'),
                 Text(widget.data[index]['content']),
@@ -197,6 +229,74 @@ class Upload extends StatelessWidget {
           }, icon: Icon(Icons.close),),
         ],
       )
+    );
+  }
+}
+
+
+class Store1 extends ChangeNotifier {
+  var name = 'John Kim';
+  var follower = 0;
+  var textFollower = "팔로우";
+  var isFriend = false;           //팔로우버튼 클릭유무
+
+  changeName(){
+    name = "John Park";
+    notifyListeners();        //재랜더링함수 ==setstate()
+  }
+
+  changeFollower(){
+    if(isFriend == false) {
+      follower += 1;
+      isFriend = true;
+    } else {
+      follower -= 1;
+      isFriend = false;
+    }
+    notifyListeners();
+  }
+
+  changeTextFollower(){
+    if(isFriend == true)
+    {
+      textFollower = "팔로우 취소";
+    } else {
+      textFollower = "팔로우";
+    }
+  }
+}
+
+
+class Profile extends StatelessWidget {
+  const Profile({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.watch<Store1>().name, style: TextStyle(color: Colors.black)),       //provider 갖다쓰기
+      ),
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.grey,
+              ),
+              Text('팔로워 ${context.watch<Store1>().follower.toString()}명'),
+             ElevatedButton(onPressed: (){
+               context.read<Store1>().changeFollower();
+               context.read<Store1>().changeTextFollower();
+             }, child: Text(context.watch<Store1>().textFollower)),
+            ],
+          ),
+          /* ElevatedButton(onPressed: (){
+            context.read<Store1>().changeName();
+          }, child: Text('이름변경')),*/                //사용자 이름변경
+        ],
+      ),
     );
   }
 }
