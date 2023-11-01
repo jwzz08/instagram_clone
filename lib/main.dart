@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import './profile.dart';
+import 'notification.dart';
 
 void main() {
   runApp(
@@ -90,6 +91,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    initNotification();
     saveData();
     getData();
   }
@@ -97,6 +99,10 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(child: Text('+'),
+      onPressed: (){
+        showNotification();
+    },),
         appBar: AppBar(
           title: Text("Instagram", style: TextStyle(color: Colors.black)),
           actions: [IconButton(
