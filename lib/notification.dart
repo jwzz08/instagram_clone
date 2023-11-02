@@ -13,7 +13,7 @@ initNotification() async {
   var androidSetting = AndroidInitializationSettings('mipmap/ic_launcher');
 
   //ios에서 앱 로드시 유저에게 권한요청하려면
-  var iosSetting = IOSInitializationSettings(
+  var iosSetting = DarwinInitializationSettings(
     requestAlertPermission: true,
     requestBadgePermission: true,
     requestSoundPermission: true,
@@ -41,10 +41,10 @@ showNotification() async {
     color: Color.fromARGB(255, 255, 0, 0),
   );
 
-  var iosDetails = IOSNotificationDetails(
-    presentAlert: true,
-    presentBadge: true,
+  var iosDetails = DarwinNotificationDetails(
     presentSound: true,
+    presentBadge: true,
+    presentAlert: true,
   );
 
   // 알림 id, 제목, 내용 맘대로 채우기
@@ -67,10 +67,10 @@ showNotification2() async {
     importance: Importance.max,
     color: Color.fromARGB(255, 255, 0, 0),
   );
-  var iosDetails = const IOSNotificationDetails(
-    presentAlert: true,
-    presentBadge: true,
+  var iosDetails = const DarwinNotificationDetails(
     presentSound: true,
+    presentBadge: true,
+    presentAlert: true,
   );
 
   notifications.zonedSchedule(
